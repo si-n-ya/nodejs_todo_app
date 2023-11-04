@@ -22,11 +22,25 @@ app.get('/', async (req: Request, res: Response) => {
   }
 })
 
-app.post("/add", (req: Request, res: Response) => {
+app.post("/add", async (req: Request, res: Response) => {
   console.log("task追加リクエスト");
   console.log(req.body);
   const { title } = req.body;
-  return res.status(200).json({ title: title });
+
+  try {
+    const sql = `INSERT INTO tasks (title) VALUES (?)`;
+    const [result] = await pool.query(sql, [title]);
+    const insertId = (result as any).insertId;
+    return res.status(200).json({ id: insertId, title: title });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+      return res.status(500).json({ message: "タスクの登録に失敗しました。" });
+    } else {
+      // 想定外のエラー
+      return res.status(500).json({ message: "想定外のエラーが発生しました。" });
+    }
+  }
 })
 
 try {

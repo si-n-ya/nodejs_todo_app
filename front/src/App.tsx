@@ -30,6 +30,10 @@ function App() {
   }, []);
 
   const addTask = async (title: string) => {
+    if (!title) {
+      alert('TODOを入力してください。')
+      return;
+    }
     console.log(title);
     await axios
       .post<AddTask>(
@@ -37,9 +41,11 @@ function App() {
         { title: title },
       )
       .then((response) => {
-        console.log(response.data);
-        const data = response.data;
-        // setTasks((preTasks) => [Task, ...preTasks]);
+        // APIから返されるデータをTask型を想定しているため、型アサーションを使用してdataをTask型にキャストする
+        const data = response.data as Task;
+        console.log(data)
+        setTasks((preTasks) => [data, ...preTasks]);
+        setTitle('')
       })
       .catch((error) => {
         console.log(error);
