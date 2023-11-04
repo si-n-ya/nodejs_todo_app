@@ -43,6 +43,26 @@ app.post("/add", async (req: Request, res: Response) => {
   }
 })
 
+app.put("/update", async (req: Request, res: Response) => {
+  console.log("putリクエストを受け付けました。");
+  console.log(req.body.data);
+  const { id, title } = req.body;
+
+  try {
+    const sql = `UPDATE tasks SET title=? WHERE id=?`
+    const [result] = await pool.query(sql, [title, id]);
+    return res.status(200).json({ id: id, title: title });
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(error.message);
+      return res.status(500).json({ message: "タスクの登録に失敗しました。" });
+    } else {
+      // 想定外のエラー
+      return res.status(500).json({ message: "想定外のエラーが発生しました。" });
+    }
+  }
+});
+
 try {
   app.listen(PORT, () => {
     console.log(`server running at://localhost:${PORT}`);

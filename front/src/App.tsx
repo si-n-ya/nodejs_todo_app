@@ -15,6 +15,8 @@ type AddTask = {
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState('')
+  const [editId, setEditId] = useState<number|undefined>(undefined);
+  const [editTitle, setEditTitle] = useState<string|undefined>(undefined);
 
   useEffect(() => {
     axios
@@ -29,7 +31,7 @@ function App() {
       });
   }, []);
 
-  const addTask = async (title: string) => {
+  const addTask = async () => {
     if (!title) {
       alert('TODOを入力してください。')
       return;
@@ -52,15 +54,52 @@ function App() {
       });
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const updateTask = async () => {
+    if (!editTitle) {
+      alert('編集用TODOを入力してください。')
+      return;
+    }
+    await axios
+      .put<Task>(
+        "http://localhost:3000/update",
+        {
+          id: editId,
+          title: editTitle,
+        })
+      .then((response) => {
+        console.log(response.data);
+        const data = response.data as Task;
+        const newTasks: Task[] = tasks.map((task) => {
+          return task.id === data.id ? data : task;
+        });
+        setTasks(newTasks);
+        setEditId(undefined);
+      })
+      .catch((e) => {
+        console.log(e.message);
+      });
+  };
+
+  const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     console.log(title)
-    addTask(title)
+    addTask()
+  }
+
+  const handleUpdateSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    console.log(editTitle)
+    updateTask()
+  }
+
+  const handleToggleEdit = (e: React.MouseEvent<HTMLButtonElement>, task: Task) => {
+    setEditId(task.id)
+    setEditTitle(task.title)
   }
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleAddSubmit}>
         <input
           type="text"
           placeholder="TODOを入力してください。"
@@ -70,7 +109,30 @@ function App() {
         <button type="submit">add</button>
       </form>
       {tasks.map((task) => (
-        <p key={task.id}>{task.title}</p>
+        <div key={task.id} style={{ display: "flex" }}>
+          {editId === task.id ? (
+            <form onSubmit={handleUpdateSubmit}>
+              <input
+                type="text"
+                placeholder="TODOを入力してください。"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}  
+              />
+              <button>update</button>
+            </form>
+          ) : (
+            <>
+              <p>{task.title}</p>
+              <button
+                onClick={(e) => handleToggleEdit(e, task)}
+              >
+              edit
+              </button>
+            </>
+          )}
+
+          <button onClick={() => console.log('delete')}>delete</button>
+        </div>
       ))}
     </>
   );
