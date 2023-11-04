@@ -1,15 +1,40 @@
-import http from 'http'; // httpモジュールの読み込み
+import express from 'express';
 
-const server = http.createServer((req, res) => { //  HTTPサーバを作成
-  if (req.url === '/todos' && req.method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' }); // レスポンスHTTPヘッダーを設定
-    res.end(JSON.stringify({ message: 'todoテスト' })); // レスポンスボディを送信
-  } else {
-    res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ message: 'ページが見つかりません。' }));
-  }
+const app: express.Express = express()
+const port = 3000;
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }))
+
+//CROS対応（というか完全無防備：本番環境ではだめ絶対）
+app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "*")
+  res.header("Access-Control-Allow-Headers", "*");
+  next();
+})
+
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });
 
-const PORT = process.env.PORT || 3000; // ポート3000でリクエストを行う
+app.get('/', (req, res) => {
+  res.send('Hello, World!');
+});
 
-server.listen(PORT, () => console.log(`サーバー起動中：ポート ${PORT}`));
+type User = {
+    id: number
+    name: string
+    email: string
+};
+
+const users: User[] = [
+    { id: 1, name: "User1", email: "user1@test.local" },
+    { id: 2, name: "User2", email: "user2@test.local" },
+    { id: 3, name: "User3", email: "user3@test.local" }
+]
+
+//一覧取得
+app.get('/users', (req: express.Request, res: express.Response) => {
+    res.send(JSON.stringify(users))
+})
