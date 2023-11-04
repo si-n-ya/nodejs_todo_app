@@ -6,7 +6,7 @@ function App() {
     axios
       .get("http://localhost:3000")  // ローカルのバックエンドサーバーのURLにgetメソッドでアクセス
       .then((response) => {
-        console.log(response.data.message)
+        console.log(response.data.todos)
       })
       .catch((e) => {
         console.log(e.message);
