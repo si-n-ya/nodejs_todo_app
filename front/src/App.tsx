@@ -12,6 +12,10 @@ type AddTask = {
   title: string;
 };
 
+type DeleteTask = {
+  id: number
+}
+
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [title, setTitle] = useState('')
@@ -80,6 +84,25 @@ function App() {
       });
   };
 
+  const deleteTask = async (id: number) => {
+    await axios
+      .delete<DeleteTask>("http://localhost:3000/delete", {
+        data: {
+          id: id
+        },
+      })
+      .then((response) => {
+        console.log(response);
+        const data = response.data;
+        const newTasks = tasks.filter((task) => task.id !== data.id);
+        setTasks(newTasks);
+        setEditId(undefined);
+      })
+      .catch((e) => {
+        console.log(e.message);
+      });
+  };
+
   const handleAddSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     console.log(title)
@@ -131,7 +154,7 @@ function App() {
             </>
           )}
 
-          <button onClick={() => console.log('delete')}>delete</button>
+          <button onClick={() => deleteTask(task.id)}>delete</button>
         </div>
       ))}
     </>
